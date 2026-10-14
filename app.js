@@ -7,7 +7,7 @@ async function load(file){if(!file)return;if(!/^image\/(jpeg|png|webp)$/.test(fi
 $('file').onchange=e=>load(e.target.files[0]);document.addEventListener('dragover',e=>{e.preventDefault();document.body.classList.add('drag')});document.addEventListener('dragleave',e=>{if(!e.relatedTarget)document.body.classList.remove('drag')});document.addEventListener('drop',e=>{e.preventDefault();document.body.classList.remove('drag');load(e.dataTransfer.files[0])});$('styles').onclick=e=>{let b=e.target.closest('button');if(!b)return;style=b.dataset.style;for(let x of $('styles').children)x.classList.toggle('active',x===b);update()};for(let id of ['density','width','contrast','ink','bg','colored'])$(id).oninput=update;$('compare').onclick=()=>{original=!original;$('compare').textContent=t(original?'back':'compare');update()};$('reset').onclick=()=>{for(let [id,v]of Object.entries({density:11,width:.9,contrast:1.2,ink:'#304f8c',bg:'#ffffff'}))$(id).value=v;$('colored').checked=false;setRenderMode('detail');original=false;$('compare').textContent=t('compare');$('styles').children[0].click()};$('download').onclick=()=>{if(exporting)return;exporting=true;$('download').textContent=t('exporting');setTimeout(()=>{try{let out=document.createElement('canvas');render(out,2000);out.toBlob(blob=>{if(!blob){finish('exportError');return}let a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download='line-art-'+Date.now()+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);finish('exported',{w:out.width,h:out.height})},'image/png')}catch(e){finish('exportSmall')}},40)};function finish(key,args={}){exporting=false;$('download').textContent=t('download');setStatus(key,args)}update();
 
 function drawOriginal(){const canvas=$('originalArt');canvas.width=art.width;canvas.height=art.height;canvas.getContext('2d').drawImage(source,0,0,canvas.width,canvas.height)}
-function buildExamples(){const oldStyle=style;const values={density:$('density').value,width:$('width').value,contrast:$('contrast').value};for(const [k,v]of Object.entries({density:11,width:.9,contrast:1.2}))$(k).value=v;const c=$('exOriginal');c.width=500;c.height=Math.round(500*source.height/source.width);c.getContext('2d').drawImage(source,0,0,c.width,c.height);style='diagonal';render($('exDiagonal'),500);style='cross';render($('exCross'),500);style=oldStyle;for(const [k,v]of Object.entries(values))$(k).value=v}
+function buildExamples(){const oldStyle=style,oldMode=renderMode;const values={density:$('density').value,width:$('width').value,contrast:$('contrast').value};for(const [k,v]of Object.entries({density:11,width:.9,contrast:1.2}))$(k).value=v;const c=$('exOriginal');c.width=500;c.height=Math.round(500*source.height/source.width);c.getContext('2d').drawImage(source,0,0,c.width,c.height);style='diagonal';renderMode='detail';render($('exDiagonal'),700);renderMode='minimal';render($('exCross'),700);renderMode=oldMode;style=oldStyle;for(const [k,v]of Object.entries(values))$(k).value=v}
 document.querySelector('.presets').onclick=e=>{const b=e.target.closest('[data-preset]');if(!b)return;const presets={soft:[7,.6,1],classic:[11,.9,1.2],bold:[15,1.3,1.5]};const values=presets[b.dataset.preset];['density','width','contrast'].forEach((id,i)=>$(id).value=values[i]);update()};
 loadLandscape();
 
@@ -15,10 +15,10 @@ async function loadLandscape(){const img=new Image();try{img.src='snow-mountain.
 
 // Four flat tone bands suppress small contrast changes and leave highlights clear.
 function minimalTone(dark){return dark<.28?0:dark<.5?.38:dark<.73?.65:.9}
-function setRenderMode(mode){if(!['detail','minimal'].includes(mode))return;renderMode=mode;for(const b of $('modes').children){const active=b.dataset.mode===mode;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}const note=$('modeNote');note.dataset.i18n=mode==='minimal'?'modeMinimalNote':'modeDetailNote';note.textContent=t(note.dataset.i18n);update()}
+function setRenderMode(mode){if(!['detail','minimal'].includes(mode))return;renderMode=mode;$('colored').disabled=mode==='minimal';for(const b of $('modes').children){const active=b.dataset.mode===mode;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}const note=$('modeNote');note.dataset.i18n=mode==='minimal'?'modeMinimalNote':'modeDetailNote';note.textContent=t(note.dataset.i18n);update()}
 $('modes').onclick=e=>{const b=e.target.closest('[data-mode]');if(b)setRenderMode(b.dataset.mode)};
 
-// Region-first illustrative hatching. Sky is a conservative top-connected color mask.
+// Region-first illustrative hatching with a top-connected sky mask.
 function makeRegions(w,h,o){
  const small=document.createElement('canvas'),ratio=Math.min(1,240/Math.max(w,h));small.width=Math.max(1,Math.round(w*ratio));small.height=Math.max(1,Math.round(h*ratio));
  const sw=small.width,sh=small.height,n=sw*sh,sc=small.getContext('2d',{willReadFrequently:true});sc.drawImage(source,0,0,sw,sh);const rgba=sc.getImageData(0,0,sw,sh).data;
@@ -31,7 +31,7 @@ function makeRegions(w,h,o){
  let labels=new Uint8Array(n);for(let i=0;i<n;i++){if(sky[i]){labels[i]=1;continue}const l=Math.max(0,Math.min(1,(light[i]-.5)*o.contrast+.5));labels[i]=l>.67?0:l>.46?2:3}
  // Majority filtering turns speckled thresholds into broader, readable patches.
  for(let pass=0;pass<3;pass++){const next=labels.slice();for(let y=1;y<sh-1;y++)for(let x=1;x<sw-1;x++){const i=y*sw+x;if(sky[i])continue;const count=[0,0,0,0];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){let j=i+dy*sw+dx;if(!sky[j])count[labels[j]]++}let best=labels[i];for(const k of [0,2,3])if(count[k]>count[best])best=k;next[i]=best}labels=next}
- // Remove isolated ink islands; a broad connected shadow is retained.
+ // Remove isolated ink islands; retain broad connected tonal regions.
  const seen=new Uint8Array(n),minimum=Math.max(10,Math.floor(n*.001));for(let i=0;i<n;i++){if(seen[i]||labels[i]<2)continue;let head=0,tail=1;queue[0]=i;seen[i]=1;const label=labels[i];while(head<tail){let j=queue[head++],x=j%sw,y=Math.floor(j/sw);for(let k of [x>0?j-1:-1,x<sw-1?j+1:-1,y>0?j-sw:-1,y<sh-1?j+sw:-1])if(k>=0&&!seen[k]&&labels[k]===label){seen[k]=1;queue[tail++]=k}}if(tail<minimum)for(let j=0;j<tail;j++)labels[queue[j]]=0}
  return {labels,sw,sh};
 }
@@ -44,4 +44,11 @@ function renderSimplified(c,w,h,o){
  hatch(angle,k=>k===2||k===3,o.ink,o.width*1.3);
  hatch(angle+Math.PI/2,k=>k===3,o.ink,o.width*1.3);
  c.globalAlpha=1;
+}
+
+$('uploadButton').onclick=()=>$('file').click();
+
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches&&'IntersectionObserver' in window){
+ const observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){entry.target.animate([{opacity:.4,transform:'translateY(12px)'},{opacity:1,transform:'translateY(0)'}],{duration:450,easing:'cubic-bezier(.2,.7,.2,1)',fill:'none'});observer.unobserve(entry.target)}},{threshold:.12});
+ document.querySelectorAll('.section-heading,h2,.steps article,.example-grid figure,.faq-list article').forEach(el=>observer.observe(el));
 }
