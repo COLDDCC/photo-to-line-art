@@ -1,0 +1,22 @@
+{
+  "siteUrl": "",
+  "routes": [
+    "",
+    "zh/",
+    "ja/",
+    "es/",
+    "pt/",
+    "ko/",
+    "photo-to-cross-hatching/",
+    "minimalist-line-art/",
+    "guides/hatching-vs-cross-hatching/"
+  ],
+  "locales": {
+    "en": "",
+    "zh-CN": "zh/",
+    "ja": "ja/",
+    "es": "es/",
+    "pt": "pt/",
+    "ko": "ko/"
+  }
+}

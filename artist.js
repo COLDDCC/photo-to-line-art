@@ -13,7 +13,7 @@ function setupArtist(){
  gallery.replaceChildren();
  for(const work of artistConfig.artworks.slice(0,3)){
   if(!work.src)continue;
-  let parsed;try{parsed=new URL(work.src,location.href)}catch{continue}if(!['http:','https:','file:'].includes(parsed.protocol))continue;
+  let parsed;try{parsed=new URL(work.src,siteRoot)}catch{continue}if(!['http:','https:','file:'].includes(parsed.protocol))continue;
   const img=document.createElement('img');img.src=parsed.href;img.alt=work.alt||t('artistCredit',{artist:artistConfig.name||t('brand')});img.loading='lazy';img.onerror=()=>{img.remove();gallery.hidden=!gallery.children.length;pending.hidden=!!url};gallery.append(img);
  }
  gallery.hidden=!gallery.children.length;pending.hidden=!!url;
