@@ -19,9 +19,9 @@ The site creates hatching from photographs. It does not trace outlines, create a
 These are relevance-based clusters informed by current search-result phrasing, not verified search-volume or difficulty estimates. The two focused tool pages start the actual editor in their named mode, and contain specific advice and limits. The guide has distinct informational content. Do not make separate thin pages for every synonym.
 
 ## Production domain configuration
-The repository has no confirmed public production origin. `site.config.json` therefore leaves `siteUrl` empty. No guessed canonical or sitemap host is emitted.
+The production origin is configured as `https://phototolineart.org` in `site.config.json`. Domain registration and DNS/hosting connection are separate deployment steps.
 
-After choosing a domain, set `siteUrl` to its exact HTTPS origin (or origin plus deployment subdirectory), then run:
+To regenerate production metadata, run:
 
 ```sh
 python -m pip install -r requirements.txt

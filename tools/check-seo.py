@@ -30,7 +30,7 @@ def check(root,origin=None):
  if origin:
   xml=ET.parse(root/'sitemap.xml');locs={el.text for el in xml.iter('{http://www.sitemaps.org/schemas/sitemap/0.9}loc')};assert locs=={origin+'/'+p for p in routes['routes']};assert 'Sitemap: '+origin+'/sitemap.xml' in (root/'robots.txt').read_text()
  print(len(routes['routes']),'static pages verified',origin or '(domain unconfigured)')
-check(ROOT)
+check(ROOT,json.loads((ROOT/'seo-routes.json').read_text()).get('siteUrl') or None)
 with tempfile.TemporaryDirectory() as temp:
  copy=Path(temp)/'site';shutil.copytree(ROOT,copy,ignore=shutil.ignore_patterns('.git','.venv','__pycache__'))
  origin='https://seo-test.invalid/photo-tool';subprocess.run([os.sys.executable,str(copy/'tools/build-seo.py')],env={**os.environ,'SITE_URL':origin},check=True,stdout=subprocess.DEVNULL);check(copy,origin)

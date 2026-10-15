@@ -25,7 +25,7 @@ python tools/check-seo.py
 Edit the source layout in `templates/home.html`, translations in `i18n.js`, and specialized page copy in `tools/build-seo.py`. The generated homepage and locale/topic directories are committed for buildless hosting. Do not edit generated HTML without updating its source.
 
 ## Production domain
-Set the exact public `siteUrl` in `site.config.json` and rebuild before submitting to Search Console. You can also provide it through the `SITE_URL` build environment variable. Without a confirmed domain, the generator deliberately omits absolute canonical/hreflang URLs and sitemap.xml rather than guessing. It still generates all pages and crawlable language links. See `SEO.md` for the keyword map and release checklist.
+The production origin is `https://phototolineart.org`, configured in `site.config.json`. Register the domain and connect DNS to the public hosting provider before submitting to Search Console. You can also provide it through the `SITE_URL` build environment variable. Without a confirmed domain, the generator deliberately omits absolute canonical/hreflang URLs and sitemap.xml rather than guessing. It still generates all pages and crawlable language links. See `SEO.md` for the keyword map and release checklist.
 
 ## Hosting
 GitHub Pages: Settings → Pages → Deploy from a branch → main / (root). This instruction does not enable Pages by itself.
